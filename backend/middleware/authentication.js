@@ -20,5 +20,4 @@ exports.authorizedRoles = (...roles)=>{
         }
         next();
     }
-    
 }
