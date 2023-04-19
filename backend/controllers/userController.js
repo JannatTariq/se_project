@@ -1,12 +1,12 @@
 const ErrorHandler = require("../utils/errorhandler");
-const catchAsyncErros = require("../middleware/catchAsyncErrors");
+const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const User = require("../models/userModels");
 const sendToken= require("../utils/jwtToken")
 const sendEmail = require("../utils/sendEmail")
 const crypto = require("crypto")
 
 //Register a User
-exports.registerUser = catchAsyncErros(async(req,res,next)=>{
+exports.registerUser = catchAsyncErrors(async(req,res,next)=>{
     const {name,email,password}= req.body;
     const user = await User.create({
         name,email,password,
@@ -15,12 +15,13 @@ exports.registerUser = catchAsyncErros(async(req,res,next)=>{
             url:"sampleUrl"
         }
     })
+    console.log("I am fine");
     sendToken(user,201,res)
 })
 
 
 //Login User
-exports.loginUser =  catchAsyncErros(async(req,res,next)=>{
+exports.loginUser =  catchAsyncErrors(async(req,res,next)=>{
 
     const {email,password} = req.body
     // console.log(email, password)
@@ -42,7 +43,7 @@ exports.loginUser =  catchAsyncErros(async(req,res,next)=>{
 })
 
 //  Logout User
-exports.logoutUser =  catchAsyncErros(async(req,res,next)=>{
+exports.logoutUser =  catchAsyncErrors(async(req,res,next)=>{
     res.cookie("token",null,{
         expires: new Date(Date.now()),
         httpOnly: true, 
@@ -54,7 +55,7 @@ exports.logoutUser =  catchAsyncErros(async(req,res,next)=>{
 })
 
 //Forward Password
-exports.forgotPassword =  catchAsyncErros(async(req,res,next)=>{
+exports.forgotPassword =  catchAsyncErrors(async(req,res,next)=>{
     const user = await User.findOne({email:req.body.email})
     if(!user){
         return next(new ErrorHandler("User not Found",404))
@@ -87,7 +88,7 @@ exports.forgotPassword =  catchAsyncErros(async(req,res,next)=>{
 })
 
 //Reset Password
-exports.resetPassword =  catchAsyncErros(async(req,res,next)=>{
+exports.resetPassword =  catchAsyncErrors(async(req,res,next)=>{
     const resetPasswordToken = crypto.createHash("sha256").update(req.params.token).digest("hex");
 
     const user = await User.findOne({
@@ -111,7 +112,7 @@ exports.resetPassword =  catchAsyncErros(async(req,res,next)=>{
 });
 
 //Get Product Details
-exports.getUserDetails  =  catchAsyncErros(async(req,res,next)=>{
+exports.getUserDetails  =  catchAsyncErrors(async(req,res,next)=>{
     const user= await User.findById(req.user.id);
     res.status(200).json({
         success:true,
@@ -121,7 +122,7 @@ exports.getUserDetails  =  catchAsyncErros(async(req,res,next)=>{
 
 
 //Update User Password
-exports.updateUserPassword  =  catchAsyncErros(async(req,res,next)=>{
+exports.updateUserPassword  =  catchAsyncErrors(async(req,res,next)=>{
     const user= await User.findById(req.user.id).select("+password");
     const isPasswordMatched = await user.comparePassword(req.body.oldPassword);
 
@@ -137,7 +138,7 @@ exports.updateUserPassword  =  catchAsyncErros(async(req,res,next)=>{
 })
 
 //Update Profile
-exports.updateUserProfile  =  catchAsyncErros(async(req,res,next)=>{
+exports.updateUserProfile  =  catchAsyncErrors(async(req,res,next)=>{
     const newUserData = {
         name:req.body.name,
         email:req.body.email,
@@ -154,7 +155,7 @@ exports.updateUserProfile  =  catchAsyncErros(async(req,res,next)=>{
 })
 
 //Get All Users--Admin
-exports.getAllUser  =  catchAsyncErros(async(req,res,next)=>{
+exports.getAllUser  =  catchAsyncErrors(async(req,res,next)=>{
     const user = await User.find();
     res.status(200).json({
         success:true,
@@ -163,7 +164,7 @@ exports.getAllUser  =  catchAsyncErros(async(req,res,next)=>{
 })
 
 //Get Single  Users--Admin
-exports.getUser  =  catchAsyncErros(async(req,res,next)=>{
+exports.getUser  =  catchAsyncErrors(async(req,res,next)=>{
     const user = await User.findById(req.params.id);
     if(!user){
         return next(new ErrorHandler(`User does not exist with ID: ${req.params.id} `,400))
@@ -175,7 +176,7 @@ exports.getUser  =  catchAsyncErros(async(req,res,next)=>{
 })
 
 //Update User Role--Admin
-exports.updateUserRole  =  catchAsyncErros(async(req,res,next)=>{
+exports.updateUserRole  =  catchAsyncErrors(async(req,res,next)=>{
     const newUserData = {
         name:req.body.name,
         email:req.body.email,
@@ -198,7 +199,7 @@ exports.updateUserRole  =  catchAsyncErros(async(req,res,next)=>{
 })
 
 //Delete User --Admin
-exports.deleteUser  =  catchAsyncErros(async(req,res,next)=>{
+exports.deleteUser  =  catchAsyncErrors(async(req,res,next)=>{
     const user = await User.findById(req.params.id);
     if(!user)
     {
@@ -210,4 +211,30 @@ exports.deleteUser  =  catchAsyncErros(async(req,res,next)=>{
         message:"User Deleted Successfully"
     })
 })
-
+//Block User --Admin
+exports.blockUser = catchAsyncErrors(async (req, res, next) => {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return next(new ErrorHandler(`User does not exist with ID: ${req.params.id}`, 400));
+    }
+    user.blocked = true;
+    user.save();
+    res.status(200).json({
+      success: true,
+      message: "User Blocked Successfully"
+    })
+  });
+  
+  //Unblock User --Admin
+  exports.unblockUser = catchAsyncErrors(async (req, res, next) => {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return next(new ErrorHandler(`User does not exist with ID: ${req.params.id}`, 400));
+    }
+    user.blocked = false;
+    user.save();
+    res.status(200).json({
+      success: true,
+      message: "User Unblocked Successfully"
+    })
+  });
