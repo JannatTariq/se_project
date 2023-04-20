@@ -31,15 +31,6 @@ exports.getAllProducts= catchAsyncErros(async(req,res,next)=>{
     })
 })
 
-//Get All Admin Products
-exports.getAdminProduct = catchAsyncErros(async(req,res)=>{
-    const products = await Product.find();
-    res.status(200).json({
-        success:true,
-        products,
-    })
-})
-
 //Put Update Product Admin
 exports.updateProduct = catchAsyncErros(async(req,res,next)=>{
     let product = await Product.findById(req.params.id)
