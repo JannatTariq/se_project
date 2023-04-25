@@ -15,10 +15,6 @@ const productSchema = new mongoose.Schema({
         required:[true,"Please Enter Product Price"],
         maxLength:[8,"Price cannot exceed 8 figures"]
     },
-    ratings:{
-        type:Number,
-        default:0
-    },
     images:[
         {
         public_id:{
@@ -42,55 +38,35 @@ const productSchema = new mongoose.Schema({
         maxLength:[4,"Stpck cannot exceed 4 characters"],
         default:1
     },
-    numOfReviews:{
-        type:Number,
-        default:0
-    },
-    reviews:[{
-        
-        user:{
-            type:mongoose.Schema.ObjectId,
-            ref:"User",
-            required:true,
-        },
-        name:{
-            type:String,
-            required:true
-        },
-        rating:{
-            type:Number,
-            required:true
-        },
-        comment:{
-            type:String,
-            required:true
-        }
-    }
-    ],
-
     user:{
         type:mongoose.Schema.ObjectId,
         ref:"User",
         required:true,
+    }
+    ,
+  status: {
+    type: String,
+    enum: ["submitted", "approved", "rejected"],
+    default: "submitted",
+  },
+  shippingAddress: {
+    address: {
+      type: String,
+      required: true,
     },
-    shippingAddress: {
-      address: {
-        type: String,
-        required: true,
-      },
-      city: {
-        type: String,
-        required: true,
-      },
-      postalCode: {
-        type: String,
-        required: true,
-      },
-      country: {
-        type: String,
-        required: true,
-      },
+    city: {
+      type: String,
+      required: true,
     },
+    postalCode: {
+      type: String,
+      required: true,
+    },
+    country: {
+      type: String,
+      required: true,
+    },
+  },
 
     createdAt:{
         type:Date,
@@ -98,4 +74,4 @@ const productSchema = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model("Product",productSchema)
+module.exports = mongoose.model("PendingProduct",productSchema)

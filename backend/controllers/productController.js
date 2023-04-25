@@ -8,14 +8,30 @@ const ApiFeatures = require("../utils/apiFeatures")
 
 
 //Post Create Product Admin
-exports.createProduct = catchAsyncErros(async(req,res,next)=>{
-    req.body.user = req.user.id;
-    const product = await Product.create(req.body);
-    res.status(201).json({
-        success:true,
-        product
-    })
-})
+exports.createProduct = async (req, res, next) => {
+    try {
+        console.log(req);
+      const { name, description, price, images, category, stock, user,shippingAddress } = req.body;
+      const product = await Product.create({
+        name,
+        description,
+        price,
+        images,
+        category,
+        stock,
+        user,  shippingAddress,
+      });
+      res.status(201).json({
+        success: true,
+        data: product,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  };
 
 //Get All Products
 exports.getAllProducts= catchAsyncErros(async(req,res,next)=>{
@@ -156,3 +172,69 @@ exports.deleteReview  =  catchAsyncErros(async(req,res,next)=>{
         success:true,
     })
 })
+
+
+
+
+
+
+
+
+
+
+
+// Sort products by price
+exports.sortProductsByPrice = async (req, res) => {
+  const { sortOrder } = req.query;
+
+  try {
+    const products = await Product.find()
+      .sort({ price: sortOrder === 'asc' ? 1 : -1 });
+
+    res.status(200).json({
+      success: true,
+      products,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// Sort products by ratings
+exports.sortProductsByRatings = async (req, res) => {
+  const { sortOrder } = req.query;
+
+  try {
+    const products = await Product.find()
+      .sort({ ratings: sortOrder === 'asc' ? 1 : -1 });
+
+    res.status(200).json({
+      success: true,
+      products,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// Filter products by price, shipping fee, and shipping time
+exports.filterProducts = async (req, res) => {
+  const { minPrice, maxPrice, shippingFee, shippingTime } = req.query;
+
+  try {
+    const products = await Product.find()
+      .where('price').gte(minPrice).lte(maxPrice)
+      .where('shippingFee').equals(shippingFee)
+      .where('shippingTime').equals(shippingTime);
+
+    res.status(200).json({
+      success: true,
+      products,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
